@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <style>
+        	header{
+        		display:none;
+        		margin:0px;
+        		padding:0px;
+        		height:60px;
+        		position:fixed;
+        		top:0px;
+        		left:0px;
+        		width:100%;
+        		background-color:rgba(200,200,40,0.3);
+        		z-index: 1;
+        	}
+        	header ul{
+        		margin:0px;
+        		padding:0px;
+        		z-index: 1;
+        	}
+        	header ul li{
+        		margin:0px;
+        		padding:0px;
+				list-style: none;
+				float:left;
+				height:60px;
+				width:130px;
+				line-height:60px;
+				text-align: center;
+				z-index: 1;
+        	}
+        	header ul li:hover{
+        		background-color:rgba(10,20,200,0.3);
+        		
+        	}
+        	#Musicbox #Img{
+        		text-align:center;
+        	}
+        	#MusicList{
+        		text-indent: none;
+        	}
+			#MusicList li{
+				border-bottom:1px solid rgba(100,100,200,0.7);
+				list-style: none;
+			}
+			.describe{
+				font-size:10px;
+				color:grey;
+				font-family:"微软雅黑";
+			}
+			#MusicImg{
+				/* border:1px solid red; */
+				border-radius:40px 40px ;
+				vertical-align: super;
+				margin-left:10%;
+			}
+
+			#MusicFooter{
+				width:100%;
+				background-color: rgba(100,20,200,0.7);
+				position:fixed;
+				bottom:0px;
+				height:100px;
+				text-align:left;
+				line-height:100px;
+			}
+
+			#MusicName{
+				text-align:center;
+				display:inline-block;
+				width:50%;
+			}
+
+			.Playing{
+				border-left:3px solid rgba(20,50,200,0.6);
+			}
+			.btnImgInit{
+				display:inline-block;
+				width:70px;
+				height:70px;
+				vertical-align: super;
+				/* background:url(播放.png) no-repeat left top; */
+				background:url(MusicPlayerImg/播放1.png) no-repeat left top;
+			}
+			.btnImg{
+				display:inline-block;
+				width:70px;
+				height:70px;
+				vertical-align: super;
+				/*background:url(暂停.png) no-repeat left top;*/
+				background:url(MusicPlayerImg/暂停1.png) no-repeat left top;
+			}
+
+			/*播放页面的样式设置*/
+			#PlayerPage{
+				display:none;
+			}
+			#playProcess{
+				position:relative;
+				border:1px solid black;
+				width: 35%;
+				margin: 20px auto;
+			}
+			#PlayRound{
+				position:absolute;
+				/* top:320px;
+				left:150px; */
+				top:-24px;
+				left:-16px;
+			}
+			#ImgBox{
+				width:80%;
+				margin:20px auto;
+				text-align: center;
+			}
+			#ImgUrl{
+				border-radius:300px 300px;
+				/* margin-left:30px; */
+				height:300px;
+				width:300px;
+			}
+			#returnArrow{
+				position:fixed;
+				top:20px;
+				left:100px;
+			}
+			#startTime{
+				position:absolute;
+				top:-11px;
+				left:-58px;
+			}
+			#endTime{
+				position:absolute;
+				top: -11px;
+    			right: -46px;
+			}
+			#circles img{
+				height:48px;
+				width:48px;
+				display:inline-block;
+			}
+			
+			#circles{
+				position:absolute;
+				top:260px;
+				left:calc(50% - 144px);
+				z-index: 1;            /* 图片的透明度变化不会影响这个图片的透明度 */
+			}
+			/* #trueImg{
+				transition: opacity 1s ease-in 0s;
+			} */
+			#Tabs{
+				width:40%;
+				margin: 20px auto;
+				position:relative;
+				text-align: center;
+			}
+
+			#Tabs img{
+				margin-left: 5%;
+			}
+
+			#modal{
+				display:none;
+				position:fixed;
+				bottom:0px;
+				height:100vh;
+				left:30%;
+				width:40%;
+				text-align:center;
+				background-color:rgba(1,1,1,0.2);
+			}
+			#modal p{
+				z-index: 1;
+				margin-top:20px;
+				padding:10px;
+			}
+			#modal p span{
+				color:grey;
+				font-size: 14px;
+				font-weight: bold;
+				margin-left: 20px;
+			}
+
+			#SearchPage{
+				display:none;
+			}
+			#SearchPart{
+				text-align:left;
+				width:40%;
+				margin:100px auto;
+			}
+			#searchCont{
+				height:4vh;
+				width:70%;
+				border:1px solid rgba(20,20,20,0.5);
+				border-radius:3px;
+			    font-size:15px;
+			    padding-left:8px;				
+			}
+			#searchBtn{
+				width: 20%;
+			    height: 4.4vh;
+			    /* border: 1px solid rgba(10,20,200,0.7); */
+			    background-color: rgba(21, 83, 195, 0.85);
+			    border: 0px solid rebeccapurple;
+			    border-radius: 3px;
+			}
+
+			#results{
+				/* width:40%; */
+				/* margin:10px auto; */
+				/* background-color:rgba(10,200,20,0.6); */
+				text-align: left;
+				padding-left:5px;
+				font-size:18px;
+				font-family:'微软雅黑';
+			}
+			#results p{
+				border-bottom: 1px solid rgba(200,200,200,0.7);
+			}
+			#results p span{
+				margin-left:30px;
+			}
+        </style>
+        <script src="http://libs.baidu.com/jquery/2.0.0/jquery.js"></script>
+        <script src="Plugins/jQuery.globalValidate.js"></script>           <!-- 初始化音乐列表的插件和一些全局函数 -->
+        <script src="Plugins/jQuery.intervalFunc.js"></script>
+        <script src="Plugins/jQuery.lunboValidate.js"></script>
+        <script src="Plugins/jQuery.initlistStyle.js"></script>
+        <script src="Plugins/jQuery.UpdateAll.js"></script>
+        <script src="Plugins/jQuery.initPage.js"></script>
+        <!-- <script src="Plugins/jQuery.AudioValidate.js"></script> -->
+		<script>
+			var arrMusic = jQuery.initMusicList(); 
+			$(function(){
+				$("#Img").lunbo();                  //轮播插件
+				//需设置一些全局变量
+				var s1;     //设置定时器；以便后面清除
+				
+				var SearchFlag = false;
+
+				var o = {   //当前歌曲播放到哪个时间？分和秒
+					sec: 0, //初始为0
+					minu: 0
+				}
+
+				
+				var totalTime;      //当前歌曲的时长
+				var ave;
+				var CurrenMusic;   //记录当前播放的音乐index
+				//进度条实际的宽度
+				var realWidth = jQuery.RealWidth({  
+					body : 'body',
+					id : '#playProcess'
+				}); 
+
+				//先获取到进度条左边距浏览器的距离
+				var ProcessLeft = ($("body")[0].clientWidth - realWidth) / 2;
+
+				var count = 0;
+
+				var flagPlay = false;
+
+				var LoopMode = 2;
+				var playModeArr = ['单曲循环_32.png', '随机播放_32.png', '循环播放.png'];
+
+				//首先初始化音乐列表
+				jQuery.initPage({
+					arrMusic: arrMusic
+				});
+				//通过监听canplay事件，获取duration属性;不知道为什么canplaythrough不可以（放到一小截进度条的小圆点就不走了?）
+				//原因是：有一个时刻left变为0，并且ave是小于1的小数，每次将其加上再用parseInt()转换为小数都是0；解决办法：不用parseInt()，换成parseFloat就可以了
+				document.getElementById("Play").oncanplay = function(){ //监听canplaythrough事件，获取duration属性
+					$("#Playerbtn").attr('class', 'btnImg');
+					$("#ifPlay").attr('src', 'MusicPlayerImg/暂停_new.png');
+					if(count == 0)
+					{
+						o.sec = 0;
+						o.minu = 0;
+						$("#PlayRound").css('left', '-16px');
+						totalTime = document.getElementById("Play").duration;
+						var mm = parseInt(totalTime / 60);
+						var ss = parseInt(totalTime % 60);
+						var TotalT = jQuery.formTime({
+							sec : ss,
+							minu : mm
+						})
+
+						$("#endTime").html( TotalT.minu + ":" + TotalT.sec);
+
+						ave = parseInt(realWidth) / totalTime;
+					}
+					count++;
+					//进度条上的小圆点移动,span中的时间变化；audio元素上的currentTime设为当前时间
+					//每一秒都在变化
+					s1 = setInterval( function(){
+						o = jQuery.Playing({
+						sec: o.sec,
+						minu: o.minu,
+						ave : ave
+					});
+					},1000);
+				}
+
+				//点击进度条事件
+				$("#playProcess").click(function(e){
+					//首先把定时器取消掉
+					clearInterval(s1);
+					
+					//小圆点跳到鼠标点击位置
+					var currPos = e.pageX;
+					//计算并设置相对位置
+					$("#PlayRound").css('left', currPos - ProcessLeft - 19);     
+					//音频跳到相应的时间，设置audio的currentTime
+					var Pos = currPos - ProcessLeft;					
+					var currTime = Math.round(Pos / ave);					
+					document.getElementById("Play").currentTime  = currTime;
+					//之前暂停歌曲，点击进度条之后，不仅跳到对应时间，且触发播放
+					if(flagPlay == false){         
+						$("#Play").trigger('play');
+						$("#Playerbtn").attr('class', 'btnImg');
+					}
+					//设置span里的分和秒数，并将sec和minu变量设置成对应的时间
+					o.minu = parseInt(currTime / 60);
+					o.sec = parseInt(currTime % 60);
+
+					sec = jQuery.formTime({
+						sec: o.sec,
+						minu : o.minu
+					}).sec;
+					minu = jQuery.formTime({
+						sec: o.sec,
+						minu : o.minu
+					}).minu;
+					$("#startTime").html(minu + ":" + sec);
+				});
+				
+				//点击对应li播放对应歌曲,并将播放条的图片换成对应图片
+				$("#MusicList").click(function(e){
+					
+					flagPlay = true;
+					//将列表所有的class都清除
+					jQuery.initlistStyle({
+						selector: '#MusicList li'
+					});
+					var target = e.target.tagName;
+					var MusicUrl;
+					if(target == "LI" || target == 'SPAN')
+					{
+						if($("#Playerbtn").attr('class') == 'btnImgInit')
+						{
+							$("#Playerbtn").attr('class', 'btnImg');
+						}
+						else
+						{
+							$("#Playerbtn").attr('class', 'btnImgInit');
+							setTimeout(function(){
+								$("#Playerbtn").attr('class', 'btnImg');
+							}, 50);
+						}
+						if(target == "LI")
+						{
+							$(e.target).addClass('Playing');
+							MusicUrl = 'Musics/' + $(e.target).text();
+												
+						}
+						else //点击的是SPAN元素
+						{
+							//得到点击的MusicList中的歌曲名)
+							MusicUrl = $(e.target).parent().text();
+						}
+
+						for(var i = 0; i < arrMusic.length; i++)
+						{
+							if(MusicUrl.indexOf(arrMusic[i].MusicName) != -1)
+							{
+								CurrenMusic = i;
+								//把audio.src设为点击的这个li中的值
+				        		jQuery.updateAll({
+				        			audioSrc : arrMusic[i].MusicUrl,
+									autoplay :'autoplay',
+									musicName: arrMusic[i].MusicName,
+									singer: arrMusic[i].Singer,
+									musicImg: arrMusic[i].MusicImg,
+									imgUrl: arrMusic[i].MusicImg
+				        		});
+				        	}
+						}
+						//在播放过程中点击Li元素时
+						if(s1)
+						{
+							clearInterval(s1);
+							o.sec = 0;
+							o.minu = 0;
+							//小圆点位置也要到初始位置
+							$("#PlayRound").css('left', '-16px');
+							//需要重新计算播放歌曲时长
+							count = 0;
+						}
+					}		
+				});
+				//点击播放/暂停按钮，替换掉播放暂停图片，并使得音频暂停，触发audio的onplay和onpause事件即可
+				$("#Playerbtn").click(function(e){
+					e.stopPropagation();                //避免触发到包含Div上的事件
+					if($(this).attr('class') == 'btnImg')
+					{
+						$(this).attr('class', 'btnImgInit');
+						$("#ifPlay").attr('src', 'MusicPlayerImg/播放 _new.png');
+						//歌曲还要停下来
+						$("#Play").trigger('pause');
+						flagPlay = false;
+						clearInterval(s1);
+					}
+					else
+					{
+						if(CurrenMusic % arrMusic.length != arrMusic.length - 1)
+						{
+							$(this).attr('class', 'btnImg');
+							$("#Play").trigger('play');
+							flagPlay = true;
+							$("#ifPlay").attr('src', 'MusicPlayerImg/暂停_new.png');
+							//进度条上的小圆点移动,span中的时间变化；audio元素上的currentTime设为当前时间
+							s1 = setInterval( function(){
+								o = jQuery.Playing({
+								sec: o.sec,
+								minu: o.minu,
+								ave : ave
+								});
+							}, 1000);
+						}
+					}
+				});
+
+
+				//点击下方播放条，显示播放页面，主音乐界面隐藏
+				$("#MusicFooter").click(function(){
+					//进入另一个页面
+					//本来利用aJax来请求页面，但是这样存在的问题就是必须那个页面加载完之后进度条的小圆点才开始走
+					//因此直接将该页面显示出来，并且点击之后，就可以触发小圆点移动。原来的页面隐藏即可
+					$("#PlayerPage").show();
+					$("#Musicbox").hide();
+					$("#SearchPage").hide();
+				});
+
+				document.getElementById("Play").onended = function(){
+					clearInterval(s1);
+					
+					if(!SearchFlag)
+					{
+						//分别判断播放模式为随机、循环还是单曲播放
+						//
+						//得到当前播放的Src
+						var source = $("#Play").attr('src');
+						console.log("LoopMode=" + (LoopMode % 3));
+						if(LoopMode % 3 == 0)            //单曲循环
+						{
+							$("#Play").attr('src', source);
+							//需要重新计算播放歌曲时长
+							count = 0;
+						}
+						else if(LoopMode % 3 == 1)          //随机播放
+						{
+							var randNum = parseInt(Math.random() * arrMusic.length);
+							while(randNum == CurrenMusic)
+							{
+								randNum = parseInt(Math.random() * arrMusic.length);
+							}
+							
+							jQuery.initlistStyle({
+								selector:'#MusicList li'
+							});
+							var selector = "#MusicList li:" + "eq(" + randNum + ")";
+							$(selector).addClass('Playing');
+							
+							//需要重新计算播放歌曲时长
+							count = 0;
+
+							jQuery.updateAll({
+								audioSrc : arrMusic[randNum].MusicUrl,
+								autoplay :'autoplay',
+								musicName: arrMusic[randNum].MusicName,
+								singer: arrMusic[randNum].Singer,
+								musicImg: arrMusic[randNum].MusicImg,
+								imgUrl: arrMusic[randNum].MusicImg
+							});
+						}
+						//
+						else
+						{
+							jQuery.initlistStyle({
+								selector: '#MusicList li'
+							});
+							var selector = "#MusicList li:" + "eq(" + (CurrenMusic % arrMusic.length + 1) + ")";
+							$(selector).addClass('Playing');
+
+							if(CurrenMusic % arrMusic.length == arrMusic.length - 1)
+							{
+								clearInterval(s1);
+								//两个播放按钮都变为停止播放
+								$("#Playerbtn").attr('class', 'btnImgInit');
+								$("#ifPlay").attr('src', 'MusicPlayerImg/播放 _new.png');
+								//图片变成初始默认图片
+								$("#ImgUrl").attr('src', 'MusicImg/ImgDefault.jpg');
+								count = 0;
+								$("#MusicImg").attr('src', 'MusicImg/ImgDefault.jpg');
+								$("#MusicName").text('欢迎来到动感音乐地带');
+							}
+							if(CurrenMusic % arrMusic.length != arrMusic.length - 1)
+							{
+								count = 0;
+								var currentIndex = CurrenMusic % arrMusic.length + 1;
+								jQuery.updateAll({
+									audioSrc : arrMusic[currentIndex].MusicUrl,
+									autoplay :'autoplay',
+									musicName: arrMusic[currentIndex].MusicName,
+									singer: arrMusic[currentIndex].Singer,
+									musicImg: arrMusic[currentIndex].MusicImg,
+									imgUrl: arrMusic[currentIndex].MusicImg
+								});
+								CurrenMusic++;
+							}
+						}
+					}
+					else
+					{
+						$("#Playerbtn").attr('class', 'btnImgInit');
+						$("#ifPlay").attr('src', 'MusicPlayerImg/播放 _new.png');
+						//图片变成初始默认图片
+						$("#ImgUrl").attr('src', 'MusicImg/ImgDefault.jpg');
+						count = 0;
+								
+						$("#MusicImg").attr('src', 'MusicImg/ImgDefault.jpg');
+						$("#MusicName").text('欢迎来到动感音乐地带');
+					}
+					
+				}
+
+				//返回箭头点击事件
+				$("#returnArrow").click(function(){
+					$("#PlayerPage").hide();
+					$("#Musicbox").show();
+					/*jQuery.initPage({
+						arrMusic: arrMusic
+					});*/
+				});
+
+				//改变播放模式
+				$("#playMode").click(function(){
+					LoopMode++;
+					$("#playMode").attr('src', 'MusicPlayerImg/' + playModeArr[LoopMode%3]);
+				});
+
+				//点击播放页面的播放/暂停按钮
+				$("#ifPlay").click(function(){
+					if($(this).attr('src') == 'MusicPlayerImg/暂停_new.png')
+					{
+						$('#Playerbtn').attr('class', 'btnImgInit');
+						$(this).attr('src', 'MusicPlayerImg/播放 _new.png');
+						//歌曲还要停下来
+						$("#Play").trigger('pause');
+						flagPlay = false;
+						clearInterval(s1);
+					}
+					else
+					{
+						if(CurrenMusic % arrMusic.length != arrMusic.length - 1)
+						{
+							$('#Playerbtn').attr('class', 'btnImg');
+							$("#Play").trigger('play');
+							flagPlay = true;
+							$(this).attr('src', 'MusicPlayerImg/暂停_new.png');
+							//进度条上的小圆点移动,span中的时间变化；audio元素上的currentTime设为当前时间
+							s1 = setInterval( function(){
+								o = jQuery.Playing({
+								sec: o.sec,
+								minu: o.minu,
+								ave : ave
+								});
+							}, 1000);
+						}
+					}
+				});
+
+				//上一曲/下一曲功能
+				$("#Last").click(function(){
+					//先清除计时器
+					clearInterval(s1);
+
+					//判断播放模式是否为单曲循环
+					if(LoopMode % 3 == 0)
+					{
+						document.getElementById("Play").currentTime  = 0;
+						//小圆点位置，span时间又得重新计算
+						o.sec = 0;
+						o.minu = 0;
+						//小圆点位置也要到初始位置
+						$("#PlayRound").css('left', '-16px');
+						//需要重新计算播放歌曲时长
+						count = 0;
+					}
+					else
+					{
+						jQuery.initlistStyle({
+							selector: "#MusicList li"
+						});
+						var currMusic = $("#Play").attr('src');
+						for(var i = 0; i < arrMusic.length; i++)
+						{
+							if(currMusic == arrMusic[i].MusicUrl)
+							{
+								//小圆点位置，span时间又得重新计算
+								o.sec = 0;
+								o.minu = 0;
+								//小圆点位置也要到初始位置
+								$("#PlayRound").css('left', '-16px');
+								//需要重新计算播放歌曲时长
+								count = 0;
+								var len = arrMusic.length;
+								//将audio的src设为上一个音乐的Url
+								jQuery.updateAll({
+									audioSrc : arrMusic[(i - 1 + len) % len].MusicUrl,
+									autoplay :'autoplay',
+									musicName: arrMusic[(i - 1 + len) % len].MusicName,
+									singer: arrMusic[(i - 1 + len) % len].Singer,
+									musicImg: arrMusic[(i - 1 + len) % len].MusicImg,
+									imgUrl: arrMusic[(i - 1 + len) % len].MusicImg
+								});
+
+								var selector = "#MusicList li:" + "eq(" + ((i - 1 + len)%len) + ")";
+								console.log(selector);
+								$(selector).addClass('Playing');
+							}
+						}
+					}
+				});
+
+				$("#Next").click(function(){
+					clearInterval(s1);
+					if(LoopMode % 3 == 0)
+					{
+						//判断播放模式是否为单曲循环
+						if(LoopMode % 3 == 0)
+						{
+							document.getElementById("Play").currentTime  = 0;
+							//小圆点位置，span时间又得重新计算
+							o.sec = 0;
+							o.minu = 0;
+							//小圆点位置也要到初始位置
+							$("#PlayRound").css('left', '-16px');
+							//需要重新计算播放歌曲时长
+							count = 0;
+						}
+					}
+					else
+					{
+						$("#MusicList li").each(function(index, el) {
+							$(el).removeClass('Playing');					
+						});
+						var currMusic = $("#Play").attr('src');
+						/*console.log(currMusic);*/
+						var len = arrMusic.length;
+						for(var i = 0; i < arrMusic.length; i++)
+						{
+							if(currMusic == arrMusic[i].MusicUrl)
+							{
+								//将audio的src设为上一个音乐的Url
+								jQuery.updateAll({
+									audioSrc : arrMusic[(i + 1) % len].MusicUrl,
+									autoplay :'autoplay',
+									musicName: arrMusic[(i + 1) % len].MusicName,
+									singer: arrMusic[(i + 1) % len].Singer,
+									musicImg: arrMusic[(i + 1) % len].MusicImg,
+									imgUrl: arrMusic[(i + 1) % len].MusicImg
+								});
+								//小圆点位置，span时间又得重新计算
+								o.sec = 0;
+								o.minu = 0;
+								//小圆点位置也要到初始位置
+								$("#PlayRound").css('left', '-16px');
+								//需要重新计算播放歌曲时长
+								count = 0;
+								
+								var selector = "#MusicList li:" + "eq(" + ((i + 1)%len) + ")";
+								console.log(selector);
+								$(selector).addClass('Playing');
+							}
+						}
+					}
+				});
+
+
+				function Listmark(Curr){
+					//初始化所有的p标签
+					$("#modal p").each(function(index, el){
+						$(el).css({
+							'color':'black',
+							'fontSize': '20px',
+							'fontWeight': 'bold'
+						})
+					});
+					$("#modal p").children('span').css({
+						'color':'grey',
+						'fontSize': '14px',
+						'fontWeight': 'bold',
+						'margin-left': '20px'
+					});
+					//将正在播放的音乐标签设为其他颜色
+					var selector1 = "#modal p" + ":eq(" + Curr + ")";
+					$(selector1).css({
+						'color': 'rgba(100,200,30,0.6)',
+					});
+				}
+				
+				$("#playList").click(function(){
+					$("#modal").empty();
+					//歌曲列表先加载好了
+					for(var i = 0; i < arrMusic.length; i++)
+					{
+						$("#modal").append($("<p>" + arrMusic[i].MusicName + "<span>" + arrMusic[i].Singer + "</span></p>"));
+					}
+
+					var currMusic = $("#Play").attr('src');
+					for(var i = 0; i < arrMusic.length; i++)
+					{
+						if(currMusic == arrMusic[i].MusicUrl)
+						{
+							currMusic = i;
+						}
+					}
+					if($("#modal").css('display') == 'none')
+					{
+						Listmark(currMusic);
+						$("#modal").slideDown(1000);
+					}
+					else
+					{
+						$("#modal").slideUp(1000);
+					}
+					
+				});
+
+				$("#Mainpage").click(function(){
+					$("#PlayerPage").hide();
+					$("#Musicbox").show();
+					console.log(arrMusic);
+					jQuery.initPage({
+						arrMusic : arrMusic
+					});
+					$("#SearchPage").hide();
+					$("NearPage").hide();
+				});
+				$("#Search").click(function(){
+					$("#PlayerPage").hide();
+					$("#Musicbox").hide();
+					$("#SearchPage").show();
+					$("NearPage").hide();
+				});
+				$("Near").click(function(){
+					$("#PlayerPage").hide();
+					$("#Musicbox").hide();
+					$("#SearchPage").hide();
+					$("NearPage").show();
+				});
+
+				$(window).mousemove(function(event) {
+					if(event.pageY <= 60)
+					{
+						$('header').slideDown(1000);
+					}
+				});
+				$('header').mouseleave(function(event){
+					$('header').slideUp(1000);
+				});
+
+				$("#searchBtn").click(function(){
+					//每次搜索之后将列表清空
+					$("#results").empty();
+
+					//去调网易云音乐的API，即利用GET方法得到
+					//拿到搜索关键词
+					var s = $("#searchCont").val();
+					var limit = 10; //限制最大个数
+					var type = 1;       /*
+					type = 1  单曲
+					type = 10  专辑
+					type = 100 歌手
+					type = 1000 歌单
+					type= 1002 用户
+					*/
+
+					var URI = "http://s.music.163.com/search/get/?type=" +type + "&limit=" + limit + "&s=" + encodeURIComponent(s);
+					$.ajax({
+						url: URI,
+						type: 'get',
+						dataType: 'jsonp',
+						cache: false,
+						jsonp : 'callback',
+						jsonCallback : 'jsonCallback',
+						success: function(data){
+							console.log(data);
+							for(var i = 0; i < data.result.songs.length; i++)
+							{
+								var jsondata = data.result.songs[i];
+								/*console.log(jsondata);*/
+								$("#results").append($("<p>" + jsondata.name + "<span>" + jsondata.artists[0].name + "</span>" + "<b class='source' style='display:none'>" + jsondata.audio + "</b><b style='display:none'>" + jsondata.album.name + "</b><b style='display:none'>" + jsondata.album.picUrl + "</b></p>"));
+							}
+						}
+					})
+				});
+
+				$("#results").click(function(e){
+					SearchFlag = true;
+					var res = $(e.target).children(".source");
+
+					var resInfo = $(e.target).children("b");
+					var name = $(resInfo[1]).text();
+					var pic = $(resInfo[2]).text();
+					var sinName = $($(e.target).children("span")).text();
+
+					//将该首歌曲push进数组里面
+					arrMusic.push({
+						MusicName: name,
+						MusicUrl: $(res).text(),
+						Singer : sinName,
+						MusicImg: pic
+					});
+					jQuery.initPage({
+						arrMusic: arrMusic
+					});
+					var indexNum = arrMusic.length - 1;
+
+					var selector = "#MusicList li:" + "eq(" + (indexNum) + ")";
+					console.log($(selector));
+					$(selector).addClass('Playing');
+					//图片src设置以及Footer部分图片和文字
+					jQuery.updateAll({
+						audioSrc : $(res).text(),
+						autoplay :'autoplay',
+						musicName: arrMusic[indexNum].MusicName,
+						singer: arrMusic[indexNum].Singer,
+						musicImg: arrMusic[indexNum].MusicImg,
+						imgUrl: arrMusic[indexNum].MusicImg
+					});
+					
+					if(s1)
+					{
+						clearInterval(s1);
+						o.sec = 0;
+						o.minu = 0;
+						//小圆点位置也要到初始位置
+						$("#PlayRound").css('left', '-16px');
+						//需要重新计算播放歌曲时长
+						count = 0;
+					}
+				});
+			})
+		</script>
+    </head>
+    <body>
+    	<div id="main">
+    		<header>
+				<ul id="Slider">
+					<li id="Mainpage">首 页</li>
+					<li id="Search">搜 索</li>
+					<li id="Near">附 近</li>
+				</ul>
+			</header>
+	    	<div id="PlayerPage">
+		    	<div id="modal">
+		    		
+		    	</div>
+		    	<div>
+		    		<img id="returnArrow" src="MusicPlayerImg/返回箭头.png" height="32" width="32" alt="">
+		    	</div>
+		    	<div id="PlayPage">
+		    		<div id='ImgBox'>
+		    			<img id='ImgUrl' src="MusicImg/ImgDefault.jpg" height="48" width="48" />
+		    		</div>
+		    		<div id="playProcess">	
+		    			<span id="startTime">00:00</span>
+			    		<img id="PlayRound" src="MusicPlayerImg/实心小圆点.png" height="48" width="48" alt="" />
+			    		<span id="endTime">00:00</span>
+			    	</div>                <!-- 播放进度条 -->
+			    	<!-- 上一曲下一曲按钮 -->
+			    	<div id="Tabs">
+			    		<img id="playMode" src="MusicPlayerImg/循环播放.png" height="48" width="48" alt="">
+			    		<img id="Last" src="MusicPlayerImg/上一曲.png" height="48" width="48" alt="" />
+			    		<img id="ifPlay" src="MusicPlayerImg/播放 _new.png" height="48" width="48" alt="">
+			    		<img id="Next" src="MusicPlayerImg/下一曲.png" height="48" width="48" alt="" />
+			    		<img id="playList" src="MusicPlayerImg/播放列表.png" height="48" width="48" alt="">
+			    	</div>
+			    </div>	
+	    	</div>
+			<div id="Musicbox">
+				<audio id="Play" src="#"></audio>
+				
+				<div id="circles">
+					<img src="MusicPlayerImg/白点.png" height="48" width="48" alt="" />
+					<img src="MusicPlayerImg/黑点.png" height="48" width="48" alt="" />
+					<img src="MusicPlayerImg/黑点.png" height="48" width="48" alt="" />
+					<img src="MusicPlayerImg/黑点.png" height="48" width="48" alt="" />
+					<img src="MusicPlayerImg/黑点.png" height="48" width="48" alt="" />
+					<img src="MusicPlayerImg/黑点.png" height="48" width="48" alt="" />
+				</div>
+				<div id="Img">
+					<img id="trueImg" src="MusicPlayerImg/Music.jpg" height="300" width="600" alt="封面" />
+				</div>  <!-- 后面可以改成轮播图 -->
+				<ul id="MusicList">    <!-- 应该自己去根据数组中的数据去渲染 -->
+				</ul>
+			</div>
+			<div id="SearchPage">
+				<div id="SearchPart">
+					<label for="searchCont"></label>
+					<div id="searchBox">
+						<input type="text" name="searchCont" id="searchCont" />
+						<input type="button" id="searchBtn" value="搜索" />
+					</div>
+					<div id="results"></div>
+				</div>
+				<div id="IntroPart"></div>
+				<div id="HistoryPart"></div>
+			</div>
+			<div id="MusicFooter">
+				<img id="MusicImg" src="MusicImg/ImgDefault.jpg" height="80" width="80" alt="" />
+				<marquee id="MusicName" behavior="alternate" direction="">欢迎来到动感音乐地带</marquee>
+				<span id="Playerbtn" class="btnImgInit"></span>
+			</div>
+    	</div>
+    </body>
+    
+    <!-- 
+    	上方的图片轮播 (已实现)
+    	进度条的对应问题（上一版本已解决）
+    	有的可重用的函数进行了插件封装
+    	下一曲，上一曲切歌还没有实现；(已实现，但部分代码重复性很高，可以考虑封装成插件)
+    	点击列表按钮显示播放歌曲；但存在一个问题，歌曲列表按照arrMusic里面的去渲染；如果后面有新歌曲添加到列表中，就不会实时显示；(以优化)
+    	列表还有待改进，正在播放的歌曲应该在播放列表中得到高亮;(待解决)
+    	各个播放模式下的操作(已解决)（涉及到很多逻辑）
+    	为了加上搜索功能，需要将界面修改一下（即首页加入搜索框）
+    	复杂一点的，需要网上搜索歌曲，也还未实现。(已实现)并将搜索到的歌曲播放，对应图以及歌手也显示出来
+		
+		再进行插件的封装（将公共部分封装起来，提高软件的重用性和易用性）
+
+		还有需要改进的地方：
+		将新播放的歌曲加入到ul的li 标签中，并渲染出来(未实现的)
+    -->
+</html>

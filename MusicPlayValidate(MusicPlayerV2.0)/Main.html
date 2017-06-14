@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <style>
+        	#Musicbox #Img{
+        		text-align:center;
+        	}
+        	#relate{
+
+        	}
+        	#MusicList{
+        		text-indent: none;
+        	}
+			#MusicList li{
+				border-bottom:1px solid rgba(100,100,200,0.7);
+				list-style: none;
+			}
+			.describe{
+				font-size:10px;
+				color:grey;
+				font-family:"微软雅黑";
+			}
+			#MusicImg{
+				/* border:1px solid red; */
+				border-radius:40px 40px ;
+				vertical-align: super;
+				margin-left:30px;
+			}
+
+			#MusicFooter{
+				width:100%;
+				background-color: rgba(100,20,200,0.7);
+				position:fixed;
+				bottom:0px;
+				height:100px;
+				text-align:left;
+				line-height:100px;
+			}
+
+			#MusicName{
+				text-align:center;
+				display:inline-block;
+				width:50%;
+			}
+
+			.Playing{
+				border-left:3px solid rgba(20,50,200,0.6);
+			}
+			.btnImgInit{
+				display:inline-block;
+				width:70px;
+				height:70px;
+				vertical-align: super;
+				/* background:url(播放.png) no-repeat left top; */
+				background:url(MusicPlayerImg/播放1.png) no-repeat left top;
+			}
+			.btnImg{
+				display:inline-block;
+				width:70px;
+				height:70px;
+				vertical-align: super;
+				/*background:url(暂停.png) no-repeat left top;*/
+				background:url(MusicPlayerImg/暂停1.png) no-repeat left top;
+			}
+
+			/*播放页面的样式设置*/
+			#PlayerPage{
+				display:none;
+			}
+			#playProcess{
+				position:relative;
+				border:1px solid black;
+				width: 35%;
+				margin: 20px auto;
+			}
+			#PlayRound{
+				position:absolute;
+				/* top:320px;
+				left:150px; */
+				top:-24px;
+				left:-16px;
+			}
+			#ImgBox{
+				width:80%;
+				margin:20px auto;
+				text-align: center;
+			}
+			#ImgUrl{
+				border-radius:300px 300px;
+				/* margin-left:30px; */
+				height:300px;
+				width:300px;
+			}
+			#returnArrow{
+				position:fixed;
+				top:20px;
+				left:100px;
+			}
+			#startTime{
+				position:absolute;
+				top:-11px;
+				left:-58px;
+			}
+			#endTime{
+				position:absolute;
+				top: -11px;
+    			right: -46px;
+			}
+			#circles img{
+				height:48px;
+				width:48px;
+				display:inline-block;
+			}
+			
+			#circles{
+				position:absolute;
+				top:260px;
+				left:calc(50% - 144px);
+				z-index: 1;            /* 图片的透明度变化不会影响这个图片的透明度 */
+			}
+			/* #trueImg{
+				transition: opacity 1s ease-in 0s;
+			} */
+			#Tabs{
+				width:40%;
+				margin: 20px auto;
+				position:relative;
+				text-align: center;
+			}
+
+			#Tabs img{
+				margin-left: 5%;
+			}
+
+        </style>
+        <script src="http://libs.baidu.com/jquery/2.0.0/jquery.js"></script>
+        <script src="Plugins/jQuery.globalValidate.js"></script>           <!-- 初始化音乐列表的插件 -->
+        <script src="Plugins/jQuery.intervalFunc.js"></script>
+        <script src="Plugins/jQuery.lunboValidate.js"></script>
+        <!-- <script src="Plugins/jQuery.AudioValidate.js"></script> -->
+		<script>
+			var arrMusic = jQuery.initMusicList(); 
+			$(function(){
+
+				$("#Img").lunbo();                  //轮播插件
+				//需设置一些全局变量
+				var s1;     //设置定时器；以便后面清除
+				
+				var o = {   //当前歌曲播放到哪个时间？分和秒
+					sec: 0, //初始为0
+					minu: 0
+				}
+
+				
+				var totalTime;      //当前歌曲的时长
+				var ave;
+				var CurrenMusic;   //记录当前播放的音乐index
+				//进度条实际的宽度
+				var realWidth = jQuery.RealWidth({  
+					body : 'body',
+					id : '#playProcess'
+				}); 
+
+				//先获取到进度条左边距浏览器的距离
+				var ProcessLeft = ($("body")[0].clientWidth - realWidth) / 2;
+
+				var count = 0;
+
+				var flagPlay = false;
+
+				//通过监听canplay事件，获取duration属性;不知道为什么canplaythrough不可以（放到一小截进度条的小圆点就不走了?）
+				//原因是：有一个时刻left变为0，并且ave是小于1的小数，每次将其加上再用parseInt()转换为小数都是0；解决办法：不用parseInt()，换成parseFloat就可以了
+				document.getElementById("Play").oncanplay = function(){ //监听canplaythrough事件，获取duration属性
+					if(count == 0)
+					{
+						o.sec = 0;
+						o.minu = 0;
+						$("#PlayRound").css('left', '-16px');
+						totalTime = document.getElementById("Play").duration;
+						var mm = parseInt(totalTime / 60);
+						var ss = parseInt(totalTime % 60);
+						$("#endTime").html( mm + ":" + ss);
+						
+						console.log(totalTime);
+						console.log(parseInt(realWidth));
+						ave = parseInt(realWidth) / totalTime;
+						console.log("定时器:" + ave);
+					}
+					count++;
+					//进度条上的小圆点移动,span中的时间变化；audio元素上的currentTime设为当前时间
+					//每一秒都在变化
+					s1 = setInterval( function(){
+						o = jQuery.Playing({
+						sec: o.sec,
+						minu: o.minu,
+						ave : ave
+					});
+						console.log(o);
+					},1000);
+				}
+
+				//点击进度条事件
+				$("#playProcess").click(function(e){
+					//首先把定时器取消掉
+					clearInterval(s1);
+					
+					//小圆点跳到鼠标点击位置
+					var currPos = e.pageX;
+					//计算并设置相对位置
+					$("#PlayRound").css('left', currPos - ProcessLeft - 19);     
+					//音频跳到相应的时间，设置audio的currentTime
+					var Pos = currPos - ProcessLeft;
+					
+					var currTime = Math.round(Pos / ave);
+					
+					document.getElementById("Play").currentTime  = currTime;
+					//之前暂停歌曲，点击进度条之后，不仅跳到对应时间，且触发播放
+					if(flagPlay == false){         
+						$("#Play").trigger('play');
+						$("#Playerbtn").attr('class', 'btnImg');
+					}
+
+					//设置span里的分和秒数，并将sec和minu变量设置成对应的时间
+					o.minu = parseInt(currTime / 60);
+					o.sec = parseInt(currTime % 60);
+
+					sec = jQuery.formTime({
+						sec: o.sec,
+						minu : o.minu
+					}).sec;
+					minu = jQuery.formTime({
+						sec: o.sec,
+						minu : o.minu
+					}).minu;
+					$("#startTime").html(minu + ":" + sec);
+				});
+				
+				//点击对应li播放对应歌曲,并将播放条的图片换成对应图片
+				$("#MusicList").click(function(e){
+					
+					flagPlay = true;
+					//将列表所有的class都清除
+					$("#MusicList li").each(function(index, el) {
+						$(el).removeClass('Playing');					
+					});
+					var target = e.target.tagName;
+					var MusicUrl;
+					if(target == "LI" || target == 'SPAN')
+					{
+						if($("#Playerbtn").attr('class') == 'btnImgInit')
+						{
+							$("#Playerbtn").attr('class', 'btnImg');
+						}
+						else
+						{
+							$("#Playerbtn").attr('class', 'btnImgInit');
+							setTimeout(function(){
+								$("#Playerbtn").attr('class', 'btnImg');
+							}, 50);
+						}
+						if(target == "LI")
+						{
+							$(e.target).addClass('Playing');
+							MusicUrl = 'Musics/' + $(e.target).text();
+												
+						}
+						else //点击的是SPAN元素
+						{
+							//得到点击的MusicList中的歌曲名)
+							MusicUrl = $(e.target).parent().text();
+						}
+
+						for(var i = 0; i < arrMusic.length; i++)
+						{
+							if(MusicUrl.indexOf(arrMusic[i].MusicName) != -1)
+							{
+								CurrenMusic = i;
+								//把audio.src设为点击的这个li中的值
+								$("#Play").attr(
+									{'src': arrMusic[i].MusicUrl,
+									 'autoplay':'autoplay'
+									});
+								
+								$("#MusicName").text(arrMusic[i].MusicName + "\n" + arrMusic[i].Singer);
+								$("#MusicImg").attr({
+									'src' : arrMusic[i].MusicImg
+								});
+								//加播放图片
+								var MusicImgUrl = arrMusic[i].MusicImg;
+				        		$("#ImgUrl").attr('src', MusicImgUrl);
+				        	}
+						}
+						//在播放过程中点击Li元素时
+						if(s1)
+						{
+							clearInterval(s1);
+							o.sec = 0;
+							o.minu = 0;
+							//小圆点位置也要到初始位置
+							$("#PlayRound").css('left', '-16px');
+							//需要重新计算播放歌曲时长
+							count = 0;
+						}
+					}		
+				});
+
+
+				//点击播放/暂停按钮，替换掉播放暂停图片，并使得音频暂停，触发audio的onplay和onpause事件即可
+				$("#Playerbtn").click(function(e){
+					e.stopPropagation();                //避免触发到包含Div上的事件
+					if($(this).attr('class') == 'btnImg')
+					{
+						$(this).attr('class', 'btnImgInit');
+						//歌曲还要停下来
+						$("#Play").trigger('pause');
+						flagPlay = false;
+						clearInterval(s1);
+					}
+					else
+					{
+						$(this).attr('class', 'btnImg');
+						$("#Play").trigger('play');
+						flagPlay = true;
+						//进度条上的小圆点移动,span中的时间变化；audio元素上的currentTime设为当前时间
+						s1 = setInterval( function(){
+							o = jQuery.Playing({
+							sec: o.sec,
+							minu: o.minu,
+							ave : ave
+							});
+						}, 1000);
+					}
+				});
+
+
+				//点击下方播放条，显示播放页面，主音乐界面隐藏
+				$("#MusicFooter").click(function(){
+					//进入另一个页面
+					//本来利用aJax来请求页面，但是这样存在的问题就是必须那个页面加载完之后进度条的小圆点才开始走
+					//因此直接将该页面显示出来，并且点击之后，就可以触发小圆点移动。原来的页面隐藏即可
+					jQuery.clickAction({ id:"#MusicFooter"});
+	        		
+				});
+
+				document.getElementById("Play").onended = function(){
+					clearInterval(s1);
+					$("#MusicList li").each(function(index, el) {
+						$(el).removeClass('Playing');					
+					});
+					var selector = "#MusicList li:" + "eq(" + (CurrenMusic + 1) + ")";
+					$(selector).addClass('Playing');
+
+					if(CurrenMusic == arrMusic.length - 1)
+					{
+						clearInterval(s1);
+					}
+					if(CurrenMusic != arrMusic.length - 1)
+					{
+						$("#Play").attr('src', arrMusic[CurrenMusic + 1].MusicUrl);
+						$("#ImgUrl").attr('src', arrMusic[CurrenMusic + 1].MusicImg);
+						count = 0;
+						$("#MusicName").text(arrMusic[CurrenMusic + 1].MusicName + "\n" + arrMusic[CurrenMusic + 1].Singer);
+						CurrenMusic++;
+					}
+				}
+
+				//返回箭头点击事件
+				$("#returnArrow").click(function(){
+					jQuery.clickAction({ id:"#returnArrow"});
+				});
+			})
+		</script>
+    </head>
+    <body>
+    	<div id="PlayerPage">
+	    	<div>
+	    		<img id="returnArrow" src="MusicPlayerImg/返回箭头.png" height="32" width="32" alt="">
+	    	</div>
+	    	<div id="PlayPage">
+	    		<div id='ImgBox'>
+	    			<img id='ImgUrl' src="MusicImg/ImgDefault.jpg" height="48" width="48" />
+	    		</div>
+	    		<div id="playProcess">	
+	    			<span id="startTime">00:00</span>
+		    		<img id="PlayRound" src="MusicPlayerImg/实心小圆点.png" height="48" width="48" alt="" />
+		    		<span id="endTime">00:00</span>
+		    	</div>                <!-- 播放进度条 -->
+		    	<!-- 上一曲下一曲按钮 -->
+		    	<div id="Tabs">
+		    		<img id="playMode" src="MusicPlayerImg/循环播放.png" height="48" width="48" alt="">
+		    		<img id="Last" src="MusicPlayerImg/上一曲.png" height="48" width="48" alt="" />
+		    		<img id="ifPlay" src="MusicPlayerImg/播放 _new.png" height="48" width="48" alt="">
+		    		<img id="Next" src="MusicPlayerImg/下一曲.png" height="48" width="48" alt="" />
+		    		<img id="playList" src="MusicPlayerImg/播放列表.png" height="48" width="48" alt="">
+		    	</div>
+		    </div>	
+    	</div>
+		<div id="Musicbox">
+			<audio id="Play" src="#"></audio>
+			
+			<div id="circles">
+				<img src="MusicPlayerImg/白点.png" height="48" width="48" alt="" />
+				<img src="MusicPlayerImg/黑点.png" height="48" width="48" alt="" />
+				<img src="MusicPlayerImg/黑点.png" height="48" width="48" alt="" />
+				<img src="MusicPlayerImg/黑点.png" height="48" width="48" alt="" />
+				<img src="MusicPlayerImg/黑点.png" height="48" width="48" alt="" />
+				<img src="MusicPlayerImg/黑点.png" height="48" width="48" alt="" />
+			</div>
+			<div id="Img">
+				<img id="trueImg" src="MusicPlayerImg/Music.jpg" height="300" width="600" alt="封面" />
+			</div>  <!-- 后面可以改成轮播图 -->
+			<div id="relate">
+				<span>随机播放</span>
+				<span>管理</span>
+			</div>
+			<ul id="MusicList">
+				<li>
+					灰色的彩虹<br/>
+					<span class="describe">范玮琪</span>
+				</li>
+				<li>
+					101<br />
+					<span class="describe">梁静茹</span>
+				<li>
+					贝壳风铃<br />
+					<span class="describe">刘惜君</span>
+				</li>
+				<li>
+					长腿叔叔<br />
+					<span class="describe">白雅言| 清潭洞爱丽丝OST</span>
+				</li>
+			</ul>
+			<div id="MusicFooter">
+				<img id="MusicImg" src="MusicImg/ImgDefault.jpg" height="80" width="80" alt="" />
+				<marquee id="MusicName" behavior="alternate" direction="">欢迎来到动感音乐地带</marquee>
+				<span id="Playerbtn" class="btnImgInit"></span>
+			</div>
+		</div>
+    </body>
+    
+    <!-- 
+    	上方的图片轮播 (已实现)
+    	进度条的对应问题（上一版本已解决）
+    	有的可重用的函数进行了插件封装
+    	下一曲，上一曲切歌还没有实现；
+    	复杂一点的，需要网上搜索歌曲，也还未实现
+    -->
+</html>
